@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calculateur de Moyenne – Carnet de notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);
+  --paper:#FBF7EE;--line:#DFE6EA;--card:#FFFFFF;--text:#22251F;--muted:#5B6259;--dash:#CFD8C9;
+  --blue:#28407A;--blue-soft:#E9EFFA;--red:#B3261E;--red-soft:#FBEAE8;
+  --green:#2F6B4F;--green-soft:#E7F2EC;--amber:#8F5F12;--amber-soft:#FBF0DE;--track:#E8ECE4;
+  --chalk:#F4EFE2;color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#141A24;--line:#26303F;--card:#1C2433;--text:#E8ECF4;--muted:#9AA6BC;--dash:#33405A;
+  --blue:#9DB2FF;--blue-soft:#222C4A;--red:#FF8A82;--red-soft:#3A2224;
+  --green:#5FD3A0;--green-soft:#1D3A2E;--amber:#F0B45A;--amber-soft:#3B2F1A;--track:#2A3446;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#141A24;--line:#26303F;--card:#1C2433;--text:#E8ECF4;--muted:#9AA6BC;--dash:#33405A;
+  --blue:#9DB2FF;--blue-soft:#222C4A;--red:#FF8A82;--red-soft:#3A2224;
+  --green:#5FD3A0;--green-soft:#1D3A2E;--amber:#F0B45A;--amber-soft:#3B2F1A;--track:#2A3446;color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--paper);color:var(--text);font:400 16px/1.45 "Work Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+
+header.board{background:radial-gradient(120% 140% at 18% -10%,#2C5A4A 0,#1D4A3B 45%,#0F2A22 100%);color:var(--chalk);text-align:center;padding:2.5rem 1.25rem 3.25rem}
+.eyebrow{font:500 .7rem "JetBrains Mono",monospace;letter-spacing:.2em;text-transform:uppercase;opacity:.7;margin:0 0 .4rem}
+.chalk-title{font:700 clamp(2.4rem,9vw,3.6rem)/1.05 Caveat,cursive;margin:0;transform:rotate(-1.2deg)}
+.chalk-underline{display:block;margin:-.2rem auto .3rem}
+.chalk-underline path{stroke:var(--chalk);stroke-width:4;fill:none;stroke-linecap:round;opacity:.85}
+.chalk-sub{font-size:.95rem;max-width:40ch;margin:.4rem auto 0;opacity:.92}
+
+main.paper{max-width:760px;margin:-1.5rem auto 0;background:var(--paper) repeating-linear-gradient(to bottom,transparent 0 31px,var(--line) 31px 32px);border-radius:18px 18px 0 0;box-shadow:0 8px 20px rgba(0,0,0,.14);position:relative;padding:1.5rem 1.25rem 1.5rem 3rem}
+main.paper::before{content:"";position:absolute;top:0;bottom:0;left:2.15rem;width:2px;background:var(--red);opacity:.45}
+.picker label,.quick-label{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:.35rem}
+select{width:100%;max-width:340px;background:var(--card);border:2px solid var(--blue);border-radius:10px;padding:.55rem .6rem;min-height:44px;font-weight:700}
+.picker{margin-bottom:1rem}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.8rem}
+.chip-quick{background:var(--blue-soft);color:var(--blue);border:0;border-radius:999px;padding:.45rem .85rem;font-size:.82rem;font-weight:600;min-height:36px}
+.empty-state{font-style:italic;color:var(--muted);padding:1rem .25rem}
+
+.subject-row{padding:.9rem 0 1rem;border-bottom:1px dashed var(--dash)}
+.subject-head{display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem}
+.name-input{flex:1;min-width:0;border:0;border-bottom:2px solid transparent;background:transparent;font-size:1.05rem;font-weight:600;padding:.25rem .1rem}
+.name-input:focus{border-bottom-color:var(--blue);outline:0}
+.icon-btn{background:none;border:0;color:var(--red);font-size:1.05rem;min-width:44px;min-height:44px;border-radius:8px}
+.icon-btn:hover{background:var(--red-soft)}
+.subject-controls{display:flex;align-items:center;gap:.65rem;flex-wrap:wrap;margin-bottom:.5rem}
+.coef-field{display:flex;align-items:center;gap:.35rem;font-size:.82rem;color:var(--muted);font-weight:600}
+.coef-input{width:3.4rem;text-align:center;border:1.5px solid var(--dash);border-radius:8px;padding:.35rem .2rem;font:500 .9rem "JetBrains Mono",monospace;background:var(--card)}
+.notes-list{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center}
+.note-chip{display:flex;align-items:center;gap:.2rem;background:var(--card);border:1.5px solid var(--dash);border-radius:10px;padding:.15rem .15rem .15rem .2rem}
+.note-type{border:0;border-radius:7px;min-width:1.9rem;height:1.9rem;font:700 .78rem "JetBrains Mono",monospace}
+.type-d{background:var(--blue-soft);color:var(--blue)}
+.type-c{background:var(--red-soft);color:var(--red)}
+.note-value{width:3.4rem;border:0;text-align:center;font:500 .95rem "JetBrains Mono",monospace;background:transparent}
+.note-value:invalid{color:var(--red)}
+.note-remove{background:none;border:0;color:var(--muted);min-width:1.8rem;height:1.9rem;border-radius:6px}
+.note-remove:hover{color:var(--red)}
+.adders{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.55rem}
+.add-note{background:var(--card);border:1.5px dashed var(--blue);color:var(--blue);border-radius:10px;padding:.4rem .7rem;font-size:.82rem;font-weight:600;min-height:38px}
+.add-note.c{border-color:var(--red);color:var(--red)}
+.subject-result{display:flex;align-items:center;gap:.7rem}
+.subject-avg{font:700 .95rem "JetBrains Mono",monospace;min-width:7.6rem}
+.bar-track{flex:1;height:7px;background:var(--track);border-radius:99px;overflow:hidden}
+.bar-fill{height:100%;width:0;border-radius:99px;transition:width .35s ease,background .35s ease}
+.tag{font-size:.72rem;color:var(--muted);white-space:nowrap}
+
+.btn{border-radius:10px;font-weight:600;padding:.7rem 1.05rem;border:0;min-height:44px}
+.btn-primary{background:var(--blue);color:var(--paper);width:100%;margin-top:.9rem}
+.btn-ghost{background:transparent;border:1.5px solid var(--blue);color:var(--blue)}
+.btn-ghost.danger{border-color:var(--red);color:var(--red)}
+
+.bulletin-stub{max-width:760px;margin:0 auto;background:var(--blue-soft);border-top:2px dashed var(--dash);padding:1.4rem 1.25rem}
+.stub-row{display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap}
+.grade-circle-wrap{position:relative;width:128px;height:128px;flex:none}
+.circle-svg{position:absolute;inset:0;width:100%;height:100%}
+.circle-svg path{fill:none;stroke-width:6;stroke-linecap:round;stroke:var(--red);stroke-dasharray:640;stroke-dashoffset:640;transition:stroke-dashoffset .9s ease,stroke .4s}
+.circle-svg path.drawn{stroke-dashoffset:0}
+.grade-number{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 1.9rem "JetBrains Mono",monospace}
+.stub-info{flex:1;min-width:170px}
+.stub-label{margin:0 0 .15rem;font-size:.8rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.mention-badge{display:inline-block;font-weight:700;padding:.2rem .65rem;border-radius:999px;margin:.1rem 0 .4rem;background:var(--card);color:var(--muted)}
+.mention-badge.ok{background:var(--green-soft);color:var(--green)}
+.mention-badge.mid{background:var(--amber-soft);color:var(--amber)}
+.mention-badge.low{background:var(--red-soft);color:var(--red)}
+.stub-detail{margin:0;font-size:.84rem;color:var(--muted)}
+.stamp{border:3px solid var(--muted);border-radius:14px 20px 16px 22px;padding:.45rem .9rem;font-weight:800;font-size:.8rem;text-transform:uppercase;letter-spacing:.07em;transform:rotate(-6deg);color:var(--muted);text-align:center}
+.stamp.ok{border-color:var(--green);color:var(--green)}
+.stamp.bad{border-color:var(--red);color:var(--red)}
+.stub-actions{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1.1rem}
+footer.note{max-width:760px;margin:0 auto;padding:1rem 1.25rem calc(5.5rem + env(safe-area-inset-bottom,0px));font-size:.8rem;color:var(--muted)}
+
+.minibar{position:fixed;left:0;right:0;bottom:0;z-index:5;display:none;background:var(--card);border-top:2px solid var(--blue);padding:.6rem 1.1rem calc(.6rem + env(safe-area-inset-bottom,0px))}
+.minibar.on{display:block}
+.minibar div{max-width:760px;margin:0 auto;display:flex;justify-content:space-between;gap:1rem;align-items:baseline}
+.minibar b{font:700 1.3rem "JetBrains Mono",monospace}
+@media (max-width:560px){main.paper{padding-left:2.5rem}.stub-row{flex-direction:column;text-align:center}.subject-avg{min-width:6.6rem}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.print-only{display:none}
+@media print{#app,.minibar{display:none!important}.print-only{display:block;color:#000;background:#fff;padding:1rem}table{width:100%;border-collapse:collapse;font-size:.85rem}th,td{border:1px solid #999;padding:.4rem .5rem;text-align:left}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="board">
+    <p class="eyebrow">Carnet de notes numérique</p>
+    <h1 class="chalk-title">Calculateur de Moyenne</h1>
+    <svg class="chalk-underline" viewBox="0 0 220 20" width="200" height="18" aria-hidden="true"><path d="M4 12 C40 4, 70 18, 110 9 C150 1, 180 16, 216 8"/></svg>
+    <p class="chalk-sub">Moyenne d’une matière = (moyenne des devoirs + 2 × composition) ÷ 3. Choisis ta classe, entre tes notes, le calcul se fait tout seul.</p>
+  </header>
+
+  <main class="paper">
+    <div class="picker"><label for="cls">Ta classe</label><select id="cls"></select></div>
+    <span class="quick-label">Ajouter une matière</span>
+    <div class="chips" id="quick"></div>
+    <section id="list" aria-live="polite"></section>
+    <button class="btn btn-primary" id="addSub" type="button">+ Ajouter une autre matière</button>
+  </main>
+
+  <section class="bulletin-stub">
+    <div class="stub-row">
+      <div class="grade-circle-wrap">
+        <svg class="circle-svg" viewBox="0 0 200 200" aria-hidden="true"><path id="circle" d="M100,16 C152,14 180,56 176,101 C172,148 136,184 94,180 C50,176 18,142 21,97 C24,52 56,18 100,16 Z"/></svg>
+        <span class="grade-number" id="gen">—</span>
+      </div>
+      <div class="stub-info">
+        <p class="stub-label">Moyenne générale</p>
+        <span class="mention-badge" id="men">—</span>
+        <p class="stub-detail" id="detail">Aucune note pour l’instant</p>
+        <p class="stub-detail" id="gap"></p>
+      </div>
+      <div class="stamp" id="stamp">—</div>
+    </div>
+    <div class="stub-actions">
+      <button class="btn btn-ghost" id="print" type="button">🖨 Imprimer / PDF</button>
+      <button class="btn btn-ghost" id="clear" type="button">Effacer les notes</button>
+      <button class="btn btn-ghost danger" id="reset" type="button">↺ Réinitialiser la classe</button>
+    </div>
+  </section>
+
+  <footer class="note">Outil indicatif. Les coefficients proposés dépendent de la classe, de la série et de l’établissement : compare-les avec ton bulletin et modifie-les si besoin. Tes notes restent sur ton téléphone, séparément pour chaque classe.</footer>
+</div>
+
+<div class="minibar" id="mini"><div><span>Moyenne générale</span><span><b id="miniNum">—</b> / 20 · <span id="miniMen"></span></span></div></div>
+<section class="print-only" id="sheet"></section>
+
+<script>
+(function(){
+"use strict";
+var COL=[["Français",4],["Mathématiques",4],["Anglais",2],["Histoire-Géographie",2],["SVT",2],["Éducation civique",1],["EPS",1]];
+var COL2=[["Français",4],["Mathématiques",4],["Anglais",2],["Histoire-Géographie",2],["SVT",2],["Physique-Chimie",2],["LV2 (Espagnol/Arabe)",2],["Éducation civique",1],["EPS",1]];
+var CL={
+"6e":COL,"5e":COL,"4e":COL2,"3e":COL2,
+"2L":[["Français",4],["Histoire-Géographie",3],["Anglais",3],["LV2",2],["Mathématiques",2],["SVT",1],["Physique-Chimie",1],["EPS",1]],
+"2S":[["Mathématiques",5],["Physique-Chimie",4],["SVT",2],["Français",3],["Anglais",2],["Histoire-Géographie",2],["EPS",1]],
+"1L":[["Français",4],["Philosophie",3],["Histoire-Géographie",3],["Anglais",3],["LV2",2],["Mathématiques",2],["SVT",1],["EPS",1]],
+"1S":[["Mathématiques",6],["Physique-Chimie",5],["SVT",3],["Français",3],["Philosophie",2],["Anglais",2],["Histoire-Géographie",2],["EPS",1]],
+"TL":[["Philosophie",5],["Français",4],["Histoire-Géographie",4],["Anglais",3],["LV2",3],["Mathématiques",2],["EPS",1]],
+"TS1":[["Mathématiques",8],["Physique-Chimie",6],["SVT",2],["Philosophie",2],["Français",2],["Anglais",2],["Histoire-Géographie",2],["EPS",1]],
+"TS2":[["Mathématiques",5],["Physique-Chimie",5],["SVT",5],["Philosophie",2],["Français",2],["Anglais",2],["Histoire-Géographie",2],["EPS",1]],
+"X":[]};
+var GROUPS=[["Collège",[["6e","Sixième (6e)"],["5e","Cinquième (5e)"],["4e","Quatrième (4e)"],["3e","Troisième (3e)"]]],
+["Lycée",[["2L","Seconde L"],["2S","Seconde S"],["1L","Première L"],["1S","Première S"],["TL","Terminale L"],["TS1","Terminale S1"],["TS2","Terminale S2"]]],
+["Autre",[["X","Autre (je choisis mes matières)"]]]];
+var QUICK=["Philosophie","Français","Anglais","Histoire-Géographie","SVT","Mathématiques","Physique-Chimie","EPS","Espagnol","Arabe","Éducation civique"];
+var KEY="moyenne-v3";
+
+var $=function(id){return document.getElementById(id)};
+var list=$("list"),sel=$("cls");
+function uid(){return Math.random().toString(36).slice(2,9)}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function f2(x){return x.toFixed(2).replace(".",",")}
+
+var st={cls:"6e",data:{}};
+try{var raw=JSON.parse(localStorage.getItem(KEY));if(raw&&raw.data&&CL[raw.cls])st=raw}catch(e){}
+function defaults(c){return CL[c].map(function(a){return {id:uid(),name:a[0],coef:a[1],notes:[]}})}
+var subjects=Array.isArray(st.data[st.cls])?st.data[st.cls]:defaults(st.cls);
+function save(){st.data[st.cls]=subjects;try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
+
+GROUPS.forEach(function(g){
+  var og=document.createElement("optgroup");og.label=g[0];
+  g[1].forEach(function(o){var op=document.createElement("option");op.value=o[0];op.textContent=o[1];og.appendChild(op)});
+  sel.appendChild(og);
+});
+sel.value=st.cls;
+
+function avgOf(s){
+  var d=[],c=[];
+  s.notes.forEach(function(n){
+    if(n.value===""||n.value==null||isNaN(n.value))return;
+    var v=Math.max(0,Math.min(20,+n.value));(n.type==="c"?c:d).push(v);
+  });
+  var m=function(a){return a.length?a.reduce(function(x,y){return x+y},0)/a.length:null};
+  var md=m(d),mc=m(c);
+  if(md===null&&mc===null)return {avg:null,kind:""};
+  if(md!==null&&mc!==null)return {avg:(md+2*mc)/3,kind:""};
+  return {avg:md!==null?md:mc,kind:md!==null?"devoirs seuls":"composition seule"};
+}
+function color(a){return a===null?"var(--dash)":a<10?"var(--red)":a<12?"var(--amber)":"var(--green)"}
+function mention(a){
+  if(a===null)return {l:"—",c:""};
+  if(a>=16)return {l:"Très bien",c:"ok"};if(a>=14)return {l:"Bien",c:"ok"};
+  if(a>=12)return {l:"Assez bien",c:"mid"};if(a>=10)return {l:"Passable",c:"mid"};
+  return {l:"Insuffisant",c:"low"};
+}
+function chip(n){
+  var c=n.type==="c";
+  return '<div class="note-chip"><button type="button" class="note-type '+(c?"type-c":"type-d")+'" data-act="tog" data-nid="'+n.id+'" aria-label="'+(c?"Composition : appuyer pour passer en devoir":"Devoir : appuyer pour passer en composition")+'">'+(c?"C":"D")+'</button>'
+  +'<input class="note-value" type="number" inputmode="decimal" min="0" max="20" step="0.25" data-nid="'+n.id+'" value="'+esc(n.value)+'" placeholder="/20" aria-label="'+(c?"Note de composition sur 20":"Note de devoir sur 20")+'">'
+  +'<button type="button" class="note-remove" data-act="deln" data-nid="'+n.id+'" aria-label="Supprimer cette note">×</button></div>';
+}
+function row(s){
+  return '<div class="subject-row" data-id="'+s.id+'"><div class="subject-head"><input class="name-input" data-f="name" placeholder="Nom de la matière" aria-label="Nom de la matière" value="'+esc(s.name)+'"><button type="button" class="icon-btn" data-act="delsub" aria-label="Supprimer la matière">✕</button></div>'
+  +'<div class="subject-controls"><label class="coef-field">Coef.<input class="coef-input" type="number" inputmode="decimal" min="0" step="0.5" data-f="coef" value="'+esc(s.coef)+'"></label><div class="notes-list">'+s.notes.map(chip).join("")+'</div></div>'
+  +'<div class="adders"><button type="button" class="add-note" data-act="addd">+ Devoir</button><button type="button" class="add-note c" data-act="addc">+ Composition</button></div>'
+  +'<div class="subject-result"><span class="subject-avg"></span><div class="bar-track"><div class="bar-fill"></div></div><span class="tag"></span></div></div>';
+}
+function paintRow(el,s){
+  if(!el)return;var r=avgOf(s);
+  el.querySelector(".subject-avg").textContent=r.avg===null?"Moy. —":"Moy. "+f2(r.avg)+" / 20";
+  var b=el.querySelector(".bar-fill");b.style.width=(r.avg===null?0:r.avg*5)+"%";b.style.background=color(r.avg);
+  el.querySelector(".tag").textContent=r.kind;
+}
+function render(focusId){
+  list.innerHTML=subjects.length?subjects.map(row).join(""):'<p class="empty-state">Aucune matière. Touche une matière ci-dessus pour l’ajouter.</p>';
+  subjects.forEach(function(s){paintRow(list.querySelector('[data-id="'+s.id+'"]'),s)});
+  if(focusId){var i=list.querySelector('input[data-nid="'+focusId+'"]');if(i)i.focus()}
+}
+function totals(){
+  var w=0,c=0,k=0;
+  subjects.forEach(function(s){var r=avgOf(s),co=+s.coef||0;if(r.avg!==null&&co>0){w+=r.avg*co;c+=co;k++}});
+  return {avg:c>0?w/c:null,coef:c,counted:k};
+}
+function summary(){
+  var t=totals(),a=t.avg,m=mention(a);
+  $("gen").textContent=a===null?"—":f2(a);
+  var mb=$("men");mb.textContent=m.l;mb.className="mention-badge"+(m.c?" "+m.c:"");
+  $("detail").textContent=a===null?"Aucune note pour l’instant":t.counted+" matière"+(t.counted>1?"s":"")+" comptée"+(t.counted>1?"s":"")+" sur "+subjects.length+" · coefficient total "+t.coef;
+  $("gap").textContent=a===null?"":a>=10?"Tu as la moyenne.":"Il te manque "+f2(10-a)+" point"+(10-a>=2?"s":"")+" pour atteindre 10.";
+  var s=$("stamp");
+  if(a===null){s.textContent="—";s.className="stamp"}
+  else if(a>=10){s.textContent="Moyenne atteinte";s.className="stamp ok"}
+  else{s.textContent="Moyenne non atteinte";s.className="stamp bad"}
+  var p=$("circle");p.classList.toggle("drawn",a!==null);p.style.stroke=a!==null&&a>=10?"var(--green)":"var(--red)";
+  $("mini").classList.toggle("on",a!==null);$("miniNum").textContent=a===null?"—":f2(a);$("miniMen").textContent=m.l;
+  sheet(t,m);
+}
+function sheet(t,m){
+  var lab=sel.options[sel.selectedIndex].textContent;
+  var rows=subjects.map(function(s){
+    var r=avgOf(s),g=function(ty){return s.notes.filter(function(n){return n.type===ty&&n.value!==""&&!isNaN(n.value)}).map(function(n){return f2(+n.value)}).join(" ; ")||"—"};
+    return "<tr><td>"+esc(s.name||"(sans nom)")+"</td><td>"+s.coef+"</td><td>"+g("d")+"</td><td>"+g("c")+"</td><td>"+(r.avg===null?"—":f2(r.avg))+"</td></tr>";
+  }).join("");
+  $("sheet").innerHTML="<h2>Relevé de moyenne – "+esc(lab)+"</h2><p>Édité le "+new Date().toLocaleDateString("fr-FR")+"</p><table><thead><tr><th>Matière</th><th>Coef.</th><th>Devoirs</th><th>Composition</th><th>Moyenne</th></tr></thead><tbody>"+rows+"</tbody></table><p><strong>Moyenne générale : "+(t.avg===null?"—":f2(t.avg)+" / 20")+"</strong> – "+m.l+"</p><p>Formule : (moyenne des devoirs + 2 × composition) ÷ 3, pondérée par les coefficients.</p>";
+}
+function find(id){return subjects.filter(function(s){return s.id===id})[0]}
+function addNote(s,type){var n={id:uid(),value:"",type:type};s.notes.push(n);save();render(n.id);summary()}
+
+list.addEventListener("input",function(e){
+  var t=e.target,rw=t.closest(".subject-row");if(!rw)return;var s=find(rw.dataset.id);if(!s)return;
+  if(t.dataset.f==="name")s.name=t.value;
+  else if(t.dataset.f==="coef")s.coef=t.value===""?0:parseFloat(t.value);
+  else if(t.dataset.nid){s.notes.forEach(function(n){if(n.id===t.dataset.nid)n.value=t.value===""?"":parseFloat(t.value)})}
+  paintRow(rw,s);summary();save();
+});
+list.addEventListener("click",function(e){
+  var b=e.target.closest("[data-act]");if(!b)return;
+  var rw=b.closest(".subject-row"),s=find(rw.dataset.id),a=b.dataset.act;
+  if(a==="delsub"){subjects=subjects.filter(function(x){return x!==s});save();render();summary()}
+  else if(a==="addd")addNote(s,"d");
+  else if(a==="addc")addNote(s,"c");
+  else if(a==="tog"){s.notes.forEach(function(n){if(n.id===b.dataset.nid)n.type=n.type==="c"?"d":"c"});save();render(b.dataset.nid);summary()}
+  else if(a==="deln"){s.notes=s.notes.filter(function(n){return n.id!==b.dataset.nid});save();render();summary()}
+});
+function addSubject(name){var s={id:uid(),name:name,coef:1,notes:[]};subjects.push(s);save();render();summary();var i=list.querySelector('[data-id="'+s.id+'"] .'+(name?"coef-input":"name-input"));if(i)i.focus()}
+QUICK.forEach(function(n){var b=document.createElement("button");b.type="button";b.className="chip-quick";b.textContent=n;b.addEventListener("click",function(){addSubject(n)});$("quick").appendChild(b)});
+$("addSub").addEventListener("click",function(){addSubject("")});
+sel.addEventListener("change",function(){save();st.cls=sel.value;subjects=Array.isArray(st.data[st.cls])?st.data[st.cls]:defaults(st.cls);save();render();summary()});
+$("print").addEventListener("click",function(){window.print()});
+$("clear").addEventListener("click",function(){if(window.confirm("Effacer toutes les notes de cette classe ? Les matières restent.")){subjects.forEach(function(s){s.notes=[]});save();render();summary()}});
+$("reset").addEventListener("click",function(){if(window.confirm("Remettre les matières et coefficients par défaut de cette classe ? Les notes seront effacées.")){subjects=defaults(st.cls);save();render();summary()}});
+render();summary();
+})();
+</script>
+</body>
+</html>
